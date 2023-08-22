@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa con Marcadores y Ubicación</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+  <div id="map" style="width: 100%; height: 400px;"></div>
+  
+  <script>
+    var map = L.map('map');
+
+    function calcularPesoYLongitud(str) {
+        const longitud = str.length;
+        const pesoEnBytes = new TextEncoder().encode(str).length;
+        const pesoEnKilobytes = (pesoEnBytes / 1024).toFixed(2);
+        const textoConcatenado = `${longitud} caracteres, ${pesoEnKilobytes} KB`;
+        
+        return textoConcatenado;
+    }
+
+    // Obtén la ubicación del usuario y establece la vista inicial en esa ubicación
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+            map.setView([userLat, userLng], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        });
+    } else {
+        // En caso de que la geolocalización no esté disponible, establece una vista predeterminada
+        map.setView([51.505, -0.09], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    }
+
+    // Función para agregar un marcador con texto al hacer clic en el mapa
+    function addMarkerOnClick(e) {
+        try {
+            var text = prompt("Ingresa el texto para el marcador:");
+            var dataMarker = calcularPesoYLongitud(text);
+            if (text !== null && text.trim() !== "") {
+                var marker = L.marker(e.latlng).addTo(map)
+                    .bindPopup(dataMarker).openPopup();
+                
+                // Guardar los datos en el Local Storage
+                var markerData = {
+                    ubicacion: e.latlng,
+                    texto: text,
+                    data: dataMarker
+                };
+
+                var savedData = localStorage.getItem('markerData');
+                var markerDataArray = savedData ? JSON.parse(savedData) : [];
+                markerDataArray.push(markerData);
+                localStorage.setItem('markerData', JSON.stringify(markerDataArray));
+            }
+        } catch (error) {
+            console.log("Ocurrió un error: ", error);
+        }
+    }
+
+    // Agrega un listener para el evento de clic en el mapa
+    map.on('click', addMarkerOnClick);
+
+    // Función para guardar los datos del marcador en el Local Storage
+    function saveMarkerData() {
+        alert("Datos del marcador guardados en el Local Storage.");
+    }
+    function loadMarkersFromLocalStorage() {
+        var savedData = localStorage.getItem('markerData');
+        var markerDataArray = savedData ? JSON.parse(savedData) : [];
+
+        markerDataArray.forEach(function(markerData) {
+            var marker = L.marker(markerData.ubicacion).addTo(map)
+                .bindPopup(markerData.data).openPopup();
+        });
+    }
+
+    // Llamada para cargar y mostrar los marcadores al cargar la página
+    loadMarkersFromLocalStorage();
+</script>
+
+</body>
+</html>
