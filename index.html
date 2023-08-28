@@ -71,10 +71,6 @@
     // Agrega un listener para el evento de clic en el mapa
     map.on('click', addMarkerOnClick);
 
-    // Función para guardar los datos del marcador en el Local Storage
-    function saveMarkerData() {
-        alert("Datos del marcador guardados en el Local Storage.");
-    }
     function loadMarkersFromLocalStorage() {
         var savedData = localStorage.getItem('markerData');
         var markerDataArray = savedData ? JSON.parse(savedData) : [];
@@ -84,8 +80,6 @@
                 .bindPopup(markerData.data).openPopup();
         });
     }
-
-    // Llamada para cargar y mostrar los marcadores al cargar la página
     loadMarkersFromLocalStorage();
 </script>
 
